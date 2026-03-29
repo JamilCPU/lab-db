@@ -1,0 +1,49 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: lab-db-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: research_agent
+      POSTGRES_USER: research
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-research}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U research -d research_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  flyway:
+    image: flyway/flyway:10-alpine
+    container_name: lab-db-flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/flyway/sql
+    command: >
+      -url=jdbc:postgresql://postgres:5432/research_agent
+      -user=research
+      -password=${DB_PASSWORD:-research}
+      -connectRetries=5
+      migrate
+
+  api:
+    build: ./api
+    container_name: lab-db-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: postgresql://research:${DB_PASSWORD:-research}@postgres:5432/research_agent
+    ports:
+      - "0.0.0.0:8741:8741"    # LAN-accessible so Pi agents can reach it
+
+volumes:
+  postgres_data:
