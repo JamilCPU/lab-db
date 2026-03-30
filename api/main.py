@@ -46,9 +46,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Lab DB API", lifespan=lifespan)
 
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://192.0.2.99:3000",
+    "http://192.0.2.99:3001",
+    "http://192.0.2.99:3002",
+    "http://192.0.2.101:3000",
+    "http://192.0.2.101:3001",
+    "http://192.0.2.101:3002",
+    "http://192.0.2.102:3000",
+    "http://192.0.2.102:3001",
+    "http://192.0.2.102:3002",
+    "http://192.0.2.103:3000",
+    "http://192.0.2.103:3001",
+    "http://192.0.2.103:3002",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
